@@ -10,6 +10,46 @@ import { Subject, Lecture } from '../types';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { translations } from '../i18n';
 
+// Fix: Pre-create window/tab before async to avoid popup blockers
+function openContent(content: string) {
+  if (content.startsWith('data:')) {
+    try {
+      const parts = content.split(',');
+      const mime = parts[0].match(/:(.*?);/)?.[1] || 'application/octet-stream';
+      const b64 = parts[1];
+      const binary = atob(b64);
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+      const blob = new Blob([array], { type: mime });
+      const url = URL.createObjectURL(blob);
+
+      // Pre-create win
+      const win = window.open('', '_blank');
+      if (win) {
+        win.location.href = url; // set href in the safe popup
+      } else {
+        alert("Couldn't open new tab. Please disable your popup blocker and try again.");
+      }
+    } catch (e) {
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(`<iframe src="${content}" frameborder="0" style="width:100%; height:100vh;"></iframe>`);
+      } else {
+        alert("Couldn't open new tab. Please disable your popup blocker and try again.");
+      }
+    }
+  } else {
+    // Pre-create win, support both http(s) and not
+    let url = content.startsWith('http') ? content : `https://${content}`;
+    const win = window.open('', '_blank');
+    if (win) {
+      win.location.href = url;
+    } else {
+      alert("Couldn't open new tab. Please disable your popup blocker and try again.");
+    }
+  }
+}
+
 export const Subjects: React.FC<{ lang: 'ar' | 'en' }> = ({ lang }) => {
   const t = translations[lang];
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -186,26 +226,6 @@ export const Subjects: React.FC<{ lang: 'ar' | 'en' }> = ({ lang }) => {
     if (!selectedSubjectId) return;
     const updated = await db.toggleLectureStatus(selectedSubjectId, lectureId);
     setSubjects(updated);
-  };
-
-  const openContent = (content: string) => {
-    if (content.startsWith('data:')) {
-      try {
-        const parts = content.split(',');
-        const mime = parts[0].match(/:(.*?);/)?.[1] || 'application/octet-stream';
-        const b64 = parts[1];
-        const binary = atob(b64);
-        const array = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
-        const blob = new Blob([array], { type: mime });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-      } catch (e) {
-        window.open().document.write(`<iframe src="${content}" frameborder="0" style="width:100%; height:100vh;"></iframe>`);
-      }
-    } else {
-      window.open(content.startsWith('http') ? content : `https://${content}`, '_blank');
-    }
   };
 
   if (selectedSubject) {
