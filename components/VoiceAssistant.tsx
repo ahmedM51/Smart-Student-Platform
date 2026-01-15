@@ -74,7 +74,7 @@ export const VoiceAssistant: React.FC<{ lang?: 'ar' | 'en' }> = ({ lang = 'ar' }
     if (!lectureText && !imageData) return alert("ارفع ملفاً أولاً");
     setIsAudioLoading(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_APi_kEY });
       const prompt = `شرح تعليمي صوتي مكثف وبأسلوب بودكاست ممتع للمحتوى التالي: ${lectureText.substring(0, 10000)}`;
       const res = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
@@ -93,7 +93,7 @@ export const VoiceAssistant: React.FC<{ lang?: 'ar' | 'en' }> = ({ lang = 'ar' }
     if (!lectureText && !imageData) return alert("ارفع ملفاً أولاً");
     setIsVideoLoading(true); setVideoStatus('جاري التحليل العلمي للمحتوى...');
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_APi_kEY });
       const operation = await ai.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
         prompt: `Educational scientific animation explaining: ${lectureText.substring(0, 100) || "Modern Science"}. 4k, professional lighting.`,
@@ -107,7 +107,7 @@ export const VoiceAssistant: React.FC<{ lang?: 'ar' | 'en' }> = ({ lang = 'ar' }
       }
       const uri = op.response?.generatedVideos?.[0]?.video?.uri;
       if (uri) {
-        const res = await fetch(`${uri}&key=${process.env.API_KEY}`);
+        const res = await fetch(`${uri}&key=${import.meta.env.VITE_APi_kEY}`);
         setVideoUrl(URL.createObjectURL(await res.blob()));
       }
     } catch (e) { alert("فشل توليد الفيديو"); } finally { setIsVideoLoading(false); }

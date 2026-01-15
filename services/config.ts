@@ -1,9 +1,9 @@
 
 export const CONFIG = {
   // قراءة مفتاح Gemini من البيئة
-  GEMINI_API_KEY: process.env.APi_key || '',
+  GEMINI_APi_kEY: import.meta.env.VITE_APi_kEY || '',
   // بيانات Supabase للتزامن
-  SUPABASE_URL: process.env.SUPABASE_URL,
-  SUPABASE_ANON_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+  SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY,
   IS_PROD: true
 };
