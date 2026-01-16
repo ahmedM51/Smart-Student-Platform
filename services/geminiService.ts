@@ -3,11 +3,11 @@ import { GoogleGenAI } from "@google/genai";
 
 export const getAIResponse = async (prompt: string, context: string = "عام"): Promise<string> => {
   // المفتاح يتم سحبه من البيئة لضمان الأمان وعدم تسريبه على GitHub
-  const apiKey = process.env.API_KEY;
+  const apiKey = import.meta.env.VITE_APi_kEY;
   
   if (!apiKey) {
-    console.error("API_KEY is missing from environment variables.");
-    return "نظام الذكاء الاصطناعي بانتظار إعداد مفتاح التشغيل (API_KEY) في إعدادات المنصة.";
+    console.error("APi_kEY is missing from environment variables.");
+    return "نظام الذكاء الاصطناعي بانتظار إعداد مفتاح التشغيل (APi_kEY) في إعدادات المنصة.";
   }
 
   try {
