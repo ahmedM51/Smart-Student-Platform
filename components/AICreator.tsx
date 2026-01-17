@@ -78,7 +78,7 @@ export const AICreator: React.FC<{ lang?: 'ar' | 'en' }> = ({ lang = 'ar' }) => 
     setGenerationStep('text');
     
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_APi_kEY || '' });
       const prompt = `أنت خبير في تصميم العروض التقديمية التعليمية. قم بإنشاء محتوى عرض تقديمي عن: "${topic || 'الملف المرفق'}". 
       عدد الشرائح المطلوبة: ${slideCount}. 
       اللغة: ${lang === 'ar' ? 'العربية' : 'الإنجليزية'}.

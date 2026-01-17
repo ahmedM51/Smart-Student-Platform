@@ -82,7 +82,7 @@ export const MindMap: React.FC = () => {
     
     setLoading(true);
     setZoom(1); 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_APi_kEY || '' });
     
     try {
       let contents: any = [];
