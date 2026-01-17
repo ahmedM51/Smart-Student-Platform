@@ -110,6 +110,34 @@ export const VoiceAssistant: React.FC<{ lang?: 'ar' | 'en' }> = ({ lang = 'ar' }
     nextStartTimeRef.current = 0;
   };
 
+  // --- Begin Defensive Transcript Handlers Patch (TS18048) ---
+
+  // Defensive helper for safely extracting text for user transcript
+  function getUserTranscriptText(msg: LiveServerMessage): string | undefined {
+    if (
+      msg.serverContent &&
+      msg.serverContent.inputTranscription &&
+      typeof msg.serverContent.inputTranscription.text === "string"
+    ) {
+      return msg.serverContent.inputTranscription.text;
+    }
+    return undefined;
+  }
+
+  // Defensive helper for safely extracting text for ai transcript
+  function getAiTranscriptText(msg: LiveServerMessage): string | undefined {
+    if (
+      msg.serverContent &&
+      msg.serverContent.outputTranscription &&
+      typeof msg.serverContent.outputTranscription.text === "string"
+    ) {
+      return msg.serverContent.outputTranscription.text;
+    }
+    return undefined;
+  }
+
+  // --- End Defensive Transcript Handlers Patch ---
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -310,7 +338,7 @@ export const VoiceAssistant: React.FC<{ lang?: 'ar' | 'en' }> = ({ lang = 'ar' }
           if (imageData) sessionPromise.then(s => s.sendRealtimeInput({ media: { data: imageData.split(',')[1], mimeType: 'image/jpeg' } }));
         },
         onmessage: async (msg: LiveServerMessage) => {
-          // Defensive code: check for possible undefined values (see lint context)
+          // Defensive code: see lint context (TS18048) - we use our safe helpers.
           // Also strictly enforce type for transcript items to have a string `text`
           const modelTurnParts = msg.serverContent?.modelTurn?.parts;
           const audioData = Array.isArray(modelTurnParts) && modelTurnParts[0]?.inlineData?.data;
@@ -324,21 +352,23 @@ export const VoiceAssistant: React.FC<{ lang?: 'ar' | 'en' }> = ({ lang = 'ar' }
             audioSourcesRef.current.add(s);
             s.onended = () => audioSourcesRef.current.delete(s);
           }
-          // Defensive: check existence and text of inputTranscription before updating transcript
-          if (msg.serverContent?.inputTranscription && typeof msg.serverContent.inputTranscription.text === "string") {
+          // Defensive: check user transcription via helper
+          const userText = getUserTranscriptText(msg);
+          if (typeof userText === "string") {
             setTranscript(p => [
-              ...p, 
-              { role: 'user', text: msg.serverContent.inputTranscription.text }
+              ...p,
+              { role: 'user', text: userText }
             ]);
           }
-          // Defensive: check existence and text of outputTranscription before updating transcript
-          if (msg.serverContent?.outputTranscription && typeof msg.serverContent.outputTranscription.text === "string") {
+          // Defensive: check ai transcription via helper
+          const aiText = getAiTranscriptText(msg);
+          if (typeof aiText === "string") {
             setTranscript(p => [
-              ...p, 
-              { role: 'ai', text: msg.serverContent.outputTranscription.text }
+              ...p,
+              { role: 'ai', text: aiText }
             ]);
           }
-          if (msg.serverContent?.interrupted) stopAllAudio();
+          if (msg.serverContent && msg.serverContent.interrupted) stopAllAudio();
         },
         onclose: () => setIsLive(false),
         onerror: () => setIsLive(false)
@@ -538,4 +568,3 @@ export const VoiceAssistant: React.FC<{ lang?: 'ar' | 'en' }> = ({ lang = 'ar' }
     </div>
   );
 };
-
